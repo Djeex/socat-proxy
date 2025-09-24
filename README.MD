@@ -23,6 +23,7 @@ A lightweight Docker container that creates a UNIX socket proxy to TCP connectio
 | `UNIX_SOCKET_NAME` | - | Name of the socket file | `docker.sock` |
 | `UNIX_SOCKET_PATH` | - | Path to UNIX socket inside container | `/socket` |
 | `HOST_SOCKET_PATH` | - | Host path for socket mounting | `/docker/beszel-agent/sock` |
+| `DEBUG_LEVEL` | - | Level of logs verbose | `0`,`1`,`2`,`3`  |
 
 ## 🚢 Quick Start
 

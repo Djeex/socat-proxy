@@ -9,6 +9,7 @@ TARGET_PORT=${TARGET_PORT}
 UNIX_SOCKET_NAME=${UNIX_SOCKET_NAME}
 UNIX_SOCKET_PATH=${UNIX_SOCKET_PATH}
 HOST_SOCKET_PATH=${HOST_SOCKET_PATH}
+DEBUG_LEVEL=${DEBUG_LEVEL:-1}  # Default to basic logging
 
 # Remove trailing slashes to avoid double slashes
 UNIX_SOCKET_PATH=${UNIX_SOCKET_PATH%/}
@@ -20,7 +21,7 @@ FULL_UNIX_SOCKET_PATH="$UNIX_SOCKET_PATH/$UNIX_SOCKET_NAME"
 VERSION=$(cat VERSION)
 
 echo -e "${CYAN}╭────────────────────────────────────────────────╮${NC}"
-echo -e "${CYAN}│${NC}            Socat-proxy - Version ${VERSION}${NC}           ${CYAN}│${NC}"
+echo -e "${CYAN}│${NC}            Socat-proxy - Version ${VERSION}${NC}         ${CYAN}│${NC}"
 echo -e "${CYAN}├────────────────────────────────────────────────┤${NC}"
 echo -e "${CYAN}│${NC} Source: https://git.djeex.fr/Djeex/socat-proxy ${CYAN}│${NC}"
 echo -e "${CYAN}│${NC} Mirror: https://github.com/Djeex/socat-proxy   ${CYAN}│${NC}"
@@ -118,8 +119,19 @@ cleanup() {
 trap cleanup SIGTERM SIGINT
 
 echo "[~] Starting socat proxy..."
-# Start socat with verbose logging and redirect to stdout/stderr
-if socat -d -d UNIX-LISTEN:$FULL_UNIX_SOCKET_PATH,fork,unlink-early TCP:$TARGET_HOST:$TARGET_PORT & then
+# Start socat with configurable verbosity
+DEBUG_FLAGS=""
+if [ "$DEBUG_LEVEL" -eq 1 ]; then
+    DEBUG_FLAGS="-d"
+elif [ "$DEBUG_LEVEL" -eq 2 ]; then
+    DEBUG_FLAGS="-d -d"
+elif [ "$DEBUG_LEVEL" -eq 3 ]; then
+    DEBUG_FLAGS="-d -d -d"
+fi
+
+echo "[i] Using debug level: $DEBUG_LEVEL ($DEBUG_FLAGS)"
+
+if socat $DEBUG_FLAGS UNIX-LISTEN:$FULL_UNIX_SOCKET_PATH,fork,unlink-early TCP:$TARGET_HOST:$TARGET_PORT & then
     SOCAT_PID=$!
     echo "[✓] Socat started with PID: $SOCAT_PID"
     echo "[i] Socat command: socat -d -d UNIX-LISTEN:$FULL_UNIX_SOCKET_PATH,fork,unlink-early TCP:$TARGET_HOST:$TARGET_PORT"
@@ -145,4 +157,3 @@ done
 
 echo "[✗] Socat process has stopped"
 exit 1
-
