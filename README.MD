@@ -31,7 +31,7 @@ A lightweight Docker container that creates a UNIX socket proxy to TCP connectio
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://git.djeex.fr/Djeex/socat-proxy
 cd socat-proxy
 ```
 
