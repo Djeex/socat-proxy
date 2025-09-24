@@ -19,12 +19,12 @@ FULL_UNIX_SOCKET_PATH="$UNIX_SOCKET_PATH/$UNIX_SOCKET_NAME"
 
 VERSION=$(cat VERSION)
 
-echo -e "${CYAN}╭────────────────────────────────────────────────╮${NC}"
-echo -e "${CYAN}│${NC}         Socat-proxy - Version ${VERSION}${NC}            ${CYAN}│${NC}"
-echo -e "${CYAN}├────────────────────────────────────────────────┤${NC}"
+echo -e "${CYAN}╭───────────────────────────────────────────────╮${NC}"
+echo -e "${CYAN}│${NC}         Socat-proxy - Version ${VERSION}${NC}       ${CYAN}│${NC}"
+echo -e "${CYAN}├───────────────────────────────────────────────┤${NC}"
 echo -e "${CYAN}│${NC} Source: https://git.djeex.fr/Djeex/socat-proxy ${CYAN}│${NC}"
 echo -e "${CYAN}│${NC} Mirror: https://github.com/Djeex/socat-proxy   ${CYAN}│${NC}"
-echo -e "${CYAN}╰────────────────────────────────────────────────╯${NC}"
+echo -e "${CYAN}╰───────────────────────────────────────────────╯${NC}"
 
 
 # Validate required environment variables
@@ -70,7 +70,7 @@ if [ -e "$FULL_UNIX_SOCKET_PATH" ]; then
     fi
 fi
 
-echo [~] Creating socket directory structure...
+echo "[~] Creating socket directory structure..."
 # Create directory if needed
 if mkdir -p "$UNIX_SOCKET_PATH"; then
     echo "[✓] Created directory $UNIX_SOCKET_PATH"
@@ -80,11 +80,18 @@ else
 fi
 
 echo "[~] Creating socket with netcat..."
-# Create socket with nc -lU in background and then kill it to create the socket file
-if timeout 1 nc -lU "$FULL_UNIX_SOCKET_PATH" 2>/dev/null || true; then
-    echo "[✓] Socket created at $FULL_UNIX_SOCKET_PATH"
+# Create socket file by touching it, then remove it (this creates the path but leaves it clean for socat)
+touch "$FULL_UNIX_SOCKET_PATH"
+rm "$FULL_UNIX_SOCKET_PATH"
+echo "[✓] Socket path prepared at $FULL_UNIX_SOCKET_PATH"
+
+# Debug: Check if socket file exists and its permissions
+if [ -S "$FULL_UNIX_SOCKET_PATH" ]; then
+    echo "[✓] Socket file exists and is a socket"
+    ls -la "$FULL_UNIX_SOCKET_PATH"
 else
-    echo "[!] Socket creation with netcat had issues, but continuing..."
+    echo "[!] Socket file does not exist or is not a socket"
+    ls -la "$UNIX_SOCKET_PATH"
 fi
 
 echo "[~] Testing connection to target..."
@@ -115,7 +122,17 @@ echo "[~] Starting socat proxy..."
 if socat -d -d UNIX-LISTEN:$FULL_UNIX_SOCKET_PATH,fork,unlink-early TCP:$TARGET_HOST:$TARGET_PORT & then
     SOCAT_PID=$!
     echo "[✓] Socat started with PID: $SOCAT_PID"
+    echo "[i] Socat command: socat -d -d UNIX-LISTEN:$FULL_UNIX_SOCKET_PATH,fork,unlink-early TCP:$TARGET_HOST:$TARGET_PORT"
     echo "[~] Container is ready and running..."
+    
+    # Debug: Check socket after socat starts
+    sleep 2
+    if [ -S "$FULL_UNIX_SOCKET_PATH" ]; then
+        echo "[✓] Socat socket is active"
+        ls -la "$FULL_UNIX_SOCKET_PATH"
+    else
+        echo "[!] Socat socket not found"
+    fi
 else
     echo "[✗] Failed to start socat proxy"
     exit 1
