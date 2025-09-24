@@ -1,7 +1,9 @@
 #!/bin/sh
 set -e
 
-# Set default values if not provided
+CYAN="\033[1;36m"
+NC="\033[0m"
+
 TARGET_HOST=${TARGET_HOST}
 TARGET_PORT=${TARGET_PORT}
 UNIX_SOCKET_NAME=${UNIX_SOCKET_NAME}
@@ -17,14 +19,12 @@ FULL_UNIX_SOCKET_PATH="$UNIX_SOCKET_PATH/$UNIX_SOCKET_NAME"
 
 VERSION=$(cat VERSION)
 
-echo -e "${CYAN}╭────────────────────────────────────────────╮${NC}"
-echo -e "${CYAN}│${NC}         Socat-proxy - Version ${VERSION}${NC}         ${CYAN}│${NC}"
-echo -e "${CYAN}├────────────────────────────────────────────┤${NC}"
-echo -e "${CYAN}│${NC} Source: https://git.djeex.fr/Djeex/socat-proxy  ${CYAN}│${NC}"
-echo -e "${CYAN}│${NC} Mirror: https://github.com/Djeex/socat-proxy    ${CYAN}│${NC}"
-echo -e "${CYAN}╰────────────────────────────────────────────╯${NC}"
-copy_default_config
-start_server
+echo -e "${CYAN}╭───────────────────────────────────────────────╮${NC}"
+echo -e "${CYAN}│${NC}         Socat-proxy - Version ${VERSION}${NC}       ${CYAN}│${NC}"
+echo -e "${CYAN}├───────────────────────────────────────────────┤${NC}"
+echo -e "${CYAN}│${NC} Source: https://git.djeex.fr/Djeex/socat-proxy ${CYAN}│${NC}"
+echo -e "${CYAN}│${NC} Mirror: https://github.com/Djeex/socat-proxy   ${CYAN}│${NC}"
+echo -e "${CYAN}╰───────────────────────────────────────────────╯${NC}"
 
 
 # Validate required environment variables
@@ -56,7 +56,6 @@ fi
 echo "[~] Starting socat proxy..."
 echo "[i] TCP target: $TARGET_HOST:$TARGET_PORT"
 echo "[i] HOST path: $HOST_SOCKET_PATH"
-# Calculate full socket path
 echo "[i] Full host socket path: $FULL_HOST_SOCKET_PATH"
 echo "[i] Full socket path: $FULL_UNIX_SOCKET_PATH"
 
@@ -71,7 +70,7 @@ if [ -e "$FULL_UNIX_SOCKET_PATH" ]; then
     fi
 fi
 
-echo "Creating socket directory structure..."
+[~] Creating socket directory structure...
 # Create directory if needed
 if mkdir -p "$UNIX_SOCKET_PATH"; then
     echo "[✓] Created directory $UNIX_SOCKET_PATH"
@@ -80,7 +79,7 @@ else
     exit 1
 fi
 
-echo "Creating socket with netcat..."
+echo "[~] Creating socket with netcat..."
 # Create socket with nc -lU in background and then kill it to create the socket file
 if timeout 1 nc -lU "$FULL_UNIX_SOCKET_PATH" 2>/dev/null || true; then
     echo "[✓] Socket created at $FULL_UNIX_SOCKET_PATH"
@@ -88,7 +87,7 @@ else
     echo "[!] Socket creation with netcat had issues, but continuing..."
 fi
 
-echo "Testing connection to target..."
+echo "[~] Testing connection to target..."
 # Test if we can reach the target before starting socat
 if ! nc -z "$TARGET_HOST" "$TARGET_PORT" 2>/dev/null; then
     echo "[!] Cannot connect to $TARGET_HOST:$TARGET_PORT - socat will retry automatically"
@@ -104,14 +103,14 @@ cleanup() {
         kill "$SOCAT_PID" 2>/dev/null || true
         wait "$SOCAT_PID" 2>/dev/null || true
     fi
-    echo "[ ] Cleanup completed, exiting..."
+    echo "[~] Cleanup completed, exiting..."
     exit 0
 }
 
 # Set up signal trap
 trap cleanup SIGTERM SIGINT
 
-echo "Starting socat proxy..."
+echo "[~] Starting socat proxy..."
 # Start socat with verbose logging and redirect to stdout/stderr
 if socat -d -d UNIX-LISTEN:$FULL_UNIX_SOCKET_PATH,fork,unlink-early TCP:$TARGET_HOST:$TARGET_PORT & then
     SOCAT_PID=$!
@@ -127,6 +126,6 @@ while kill -0 "$SOCAT_PID" 2>/dev/null; do
     sleep 1
 done
 
-echo "[✓] Socat process has stopped"
+echo "[✗] Socat process has stopped"
 exit 1
 
