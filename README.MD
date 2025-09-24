@@ -2,6 +2,9 @@
 
 A lightweight Docker container that creates a UNIX socket proxy to TCP connections using socat and Alpine Linux.
 
+> [!NOTE]
+>_Github repo is a mirror of https://git.djeex.fr/Djeex/socat-proxy. You'll find full package, history and release note there._
+
 ## 📑 Table of Contents
 
 - [🚀 Features](#-features)
