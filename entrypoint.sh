@@ -33,10 +33,13 @@ echo "Starting socat proxy..."
 echo "UNIX socket: $UNIX_SOCKET_PATH"
 echo "TCP target: $TARGET_HOST:$TARGET_PORT"
 echo "HOST path: $HOST_SOCKET_PATH"
+echo "Socket name: $UNIX_SOCKET_NAME"
+
+# Calculate full socket path
+FULL_SOCKET_PATH="$HOST_SOCKET_PATH/$UNIX_SOCKET_NAME"
 echo "Full socket path: $FULL_SOCKET_PATH"
 
 # Check if socket file/folder exists and handle it
-FULL_SOCKET_PATH="$HOST_SOCKET_PATH/$UNIX_SOCKET_NAME"
 if [ -e "$FULL_SOCKET_PATH" ]; then
     echo "Socket file/folder $FULL_SOCKET_PATH exists, removing it..."
     if rm -rf "$FULL_SOCKET_PATH"; then
