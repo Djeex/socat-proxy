@@ -10,6 +10,4 @@ services:
       - HOST_SOCKET_PATH=${HOST_SOCKET_PATH}
     volumes:
       - ${HOST_SOCKET_PATH}:${UNIX_SOCKET_PATH}
-    networks:
-      - proxy-network
     restart: unless-stopped

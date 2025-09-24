@@ -5,8 +5,7 @@ RUN apk add --no-cache socat netcat-openbsd \
     && rm -rf /var/cache/apk/* /tmp/*
 
 # Create socket directory and copy/set permissions in single layers
-COPY entrypoint.sh /entrypoint.sh
-COPY VERSION /VERSION
+COPY entrypoint.sh VERSION /
 RUN mkdir -p /socket \
     && chmod +x /entrypoint.sh
 

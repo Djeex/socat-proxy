@@ -3,9 +3,7 @@
 .gitignore
 README.md
 LICENSE
-VERSION
 *.log
 *.tmp
 .env
 docker-compose.yaml
-Dockerfile.minimal
