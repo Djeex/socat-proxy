@@ -4,11 +4,9 @@ A lightweight Docker container that creates a UNIX socket proxy to TCP connectio
 
 ## 🚀 Features
 
-- **Lightweight**: Based on Alpine Linux (~10-15MB image)
 - **Configurable**: Environment variable driven configuration
 - **Socket Management**: Automatic UNIX socket creation and cleanup
 - **Production Ready**: Includes proper error handling and logging
-- **Multi-variant**: Standard and minimal Docker images available
 
 ## 📋 Use Cases example
 

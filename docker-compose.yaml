@@ -1,11 +1,10 @@
-version: '3.8'
-
+---
 services:
   socat-proxy:
     build: .
     environment:
-      - TARGET_HOST=${TARGET_HOST:}
-      - TARGET_PORT=${TARGET_PORT:}
+      - TARGET_HOST=${TARGET_HOST}
+      - TARGET_PORT=${TARGET_PORT}
       - UNIX_SOCKET_NAME=${UNIX_SOCKET_NAME}
       - UNIX_SOCKET_PATH=${UNIX_SOCKET_PATH}
       - HOST_SOCKET_PATH=${HOST_SOCKET_PATH}
@@ -14,10 +13,3 @@ services:
     networks:
       - proxy-network
     restart: unless-stopped
-
-volumes:
-  socket_volume:
-
-networks:
-  proxy-network:
-    external: false
