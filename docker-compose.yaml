@@ -6,9 +6,11 @@ services:
     environment:
       - TARGET_HOST=${TARGET_HOST:}
       - TARGET_PORT=${TARGET_PORT:}
+      - UNIX_SOCKET_NAME=${UNIX_SOCKET_NAME}
       - UNIX_SOCKET_PATH=${UNIX_SOCKET_PATH}
+      - HOST_SOCKET_PATH=${HOST_SOCKET_PATH}
     volumes:
-      - ${HOST_SOCKET_PATH:-/tmp/docker-proxy}:/socket
+      - ${HOST_SOCKET_PATH}:${UNIX_SOCKET_PATH}
     networks:
       - proxy-network
     restart: unless-stopped

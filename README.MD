@@ -22,8 +22,9 @@ A lightweight Docker container that creates a UNIX socket proxy to TCP connectio
 |----------|---------|-------------|---------|
 | `TARGET_HOST` | - | Target hostname/IP to proxy to | `socket-proxy-beszel` |
 | `TARGET_PORT` | - | Target port to proxy to | `2375` |
-| `UNIX_SOCKET_PATH` | - | Path to UNIX socket inside container | `/socket/docker.sock` |
-| `SOCKET_PATH` | - | Host path for socket mounting | `/your/container/sock/` |
+| `UNIX_SOCKET_NAME` | - | Name of the socket file | `docker.sock` |
+| `UNIX_SOCKET_PATH` | - | Path to UNIX socket inside container | `/socket` |
+| `HOST_SOCKET_PATH` | - | Host path for socket mounting | `/docker/beszel-agent/sock` |
 
 ## 🚢 Quick Start
 
@@ -37,8 +38,9 @@ cd socat-proxy
 
 2. Configure environment variables in `.env` file:
 ```bash
-TARGET_HOST= #  Target hostname/IP to proxy to
+TARGET_HOST= # Target hostname/IP to proxy to
 TARGET_PORT= # Target port to proxy to
+UNIX_SOCKET_NAME= # Name of the socket file
 UNIX_SOCKET_PATH= # Path to UNIX socket inside container
 HOST_SOCKET_PATH= # Host path for socket mounting
 ```
@@ -57,6 +59,7 @@ docker run -d \
   --name socat-proxy \
   -e TARGET_HOST=your-target-host \
   -e TARGET_PORT=your-target-port \
+  -e UNIX_SOCKET_NAME=your-socket-name \
   -e UNIX_SOCKET_PATH=your-unix-socket-path \
   -e HOST_SOCKET_PATH=your-socket-host-path \
   -v /your-origin-socket-path:/socket \

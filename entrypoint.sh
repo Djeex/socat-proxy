@@ -4,9 +4,11 @@ set -e
 # Set default values if not provided
 TARGET_HOST=${TARGET_HOST}
 TARGET_PORT=${TARGET_PORT}
+UNIX_SOCKET_NAME=${UNIX_SOCKET_NAME}
 UNIX_SOCKET_PATH=${UNIX_SOCKET_PATH}
-UNIX_SOCKET_NAME=$(basename "$UNIX_SOCKET_PATH")
 HOST_SOCKET_PATH=${HOST_SOCKET_PATH}
+FULL_HOST_SOCKET_PATH="$HOST_SOCKET_PATH/$UNIX_SOCKET_NAME"
+FULL_UNIX_SOCKET_PATH="$UNIX_SOCKET_PATH/$UNIX_SOCKET_NAME"
 
 # Validate required environment variables
 if [ -z "$TARGET_HOST" ]; then
@@ -16,6 +18,11 @@ fi
 
 if [ -z "$TARGET_PORT" ]; then
     echo "ERROR: TARGET_PORT environment variable is required"
+    exit 1
+fi
+
+if [ -z "$UNIX_SOCKET_NAME" ]; then
+    echo "ERROR: UNIX_SOCKET_NAME environment variable is required"
     exit 1
 fi
 
@@ -30,39 +37,36 @@ if [ -z "$HOST_SOCKET_PATH" ]; then
 fi
 
 echo "Starting socat proxy..."
-echo "UNIX socket: $UNIX_SOCKET_PATH"
 echo "TCP target: $TARGET_HOST:$TARGET_PORT"
 echo "HOST path: $HOST_SOCKET_PATH"
-echo "Socket name: $UNIX_SOCKET_NAME"
-
 # Calculate full socket path
-FULL_SOCKET_PATH="$HOST_SOCKET_PATH/$UNIX_SOCKET_NAME"
-echo "Full socket path: $FULL_SOCKET_PATH"
+echo "Full host socket path: $FULL_HOST_SOCKET_PATH"
+echo "Full socket path: $FULL_UNIX_SOCKET_PATH"
 
 # Check if socket file/folder exists and handle it
-if [ -e "$FULL_SOCKET_PATH" ]; then
-    echo "Socket file/folder $FULL_SOCKET_PATH exists, removing it..."
-    if rm -rf "$FULL_SOCKET_PATH"; then
-        echo "SUCCESS: Removed existing socket $FULL_SOCKET_PATH"
+if [ -e "$FULL_UNIX_SOCKET_PATH" ]; then
+    echo "Socket file/folder $FULL_UNIX_SOCKET_PATH exists, removing it..."
+    if rm -rf "$FULL_UNIX_SOCKET_PATH"; then
+        echo "SUCCESS: Removed existing socket $FULL_UNIX_SOCKET_PATH"
     else
-        echo "ERROR: Failed to remove existing socket $FULL_SOCKET_PATH"
+        echo "ERROR: Failed to remove existing socket $FULL_UNIX_SOCKET_PATH"
         exit 1
     fi
 fi
 
 echo "Creating socket directory structure..."
 # Create directory if needed
-if mkdir -p "$HOST_SOCKET_PATH"; then
-    echo "SUCCESS: Created directory $HOST_SOCKET_PATH"
+if mkdir -p "$UNIX_SOCKET_PATH"; then
+    echo "SUCCESS: Created directory $UNIX_SOCKET_PATH"
 else
-    echo "ERROR: Failed to create directory $HOST_SOCKET_PATH"
+    echo "ERROR: Failed to create directory $UNIX_SOCKET_PATH"
     exit 1
 fi
 
 echo "Creating socket with netcat..."
 # Create socket with nc -lU in background and then kill it to create the socket file
-if timeout 1 nc -lU "$FULL_SOCKET_PATH" 2>/dev/null || true; then
-    echo "SUCCESS: Socket created at $FULL_SOCKET_PATH"
+if timeout 1 nc -lU "$FULL_UNIX_SOCKET_PATH" 2>/dev/null || true; then
+    echo "SUCCESS: Socket created at $FULL_UNIX_SOCKET_PATH"
 else
     echo "WARNING: Socket creation with netcat had issues, but continuing..."
 fi
@@ -92,7 +96,7 @@ trap cleanup SIGTERM SIGINT
 
 echo "Starting socat proxy..."
 # Start socat with verbose logging and redirect to stdout/stderr
-if socat -d -d UNIX-LISTEN:$UNIX_SOCKET_PATH,fork,unlink-early TCP:$TARGET_HOST:$TARGET_PORT & then
+if socat -d -d UNIX-LISTEN:$FULL_UNIX_SOCKET_PATH,fork,unlink-early TCP:$TARGET_HOST:$TARGET_PORT & then
     SOCAT_PID=$!
     echo "SUCCESS: Socat started with PID: $SOCAT_PID"
     echo "Container is ready and running..."
