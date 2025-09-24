@@ -46,13 +46,12 @@ A lightweight Docker container that creates a UNIX socket proxy to TCP connectio
 
 1. Create a `.env` file with your configuration:
 ```bash
-# .env
-TARGET_HOST=socket-proxy-beszel
-TARGET_PORT=2375
-UNIX_SOCKET_NAME=docker.sock
-UNIX_SOCKET_PATH=/socket
-HOST_SOCKET_PATH=/docker/beszel-agent/sock
-DEBUG_LEVEL=0
+TARGET_HOST= #your target host
+TARGET_PORT= #your target host port
+UNIX_SOCKET_NAME= #your socket file name
+UNIX_SOCKET_PATH= #your socket folder path inside socat-proxy
+HOST_SOCKET_PATH= #your socket folder path inside your host
+DEBUG_LEVEL=1
 ```
 
 2. Create a `compose.yml` file:
@@ -82,13 +81,13 @@ docker compose up -d
 ```bash
 docker run -d \
   --name socat-proxy \
-  -e TARGET_HOST=socket-proxy-beszel \
-  -e TARGET_PORT=2375 \
-  -e UNIX_SOCKET_NAME=docker.sock \
-  -e UNIX_SOCKET_PATH=/socket \
-  -e HOST_SOCKET_PATH=/docker/beszel-agent/sock \
+  -e TARGET_HOST= #your target host \
+  -e TARGET_PORT= #your target host port \
+  -e UNIX_SOCKET_NAME= #your socket file name \
+  -e UNIX_SOCKET_PATH= #your socket folder path inside socat-proxy \
+  -e HOST_SOCKET_PATH= #your socket folder path inside your host\
   -e DEBUG_LEVEL=1 \
-  -v /docker/beszel-agent/sock:/socket \
+  -v ${HOST_SOCKET_PATH}:${UNIX_SOCKET_PATH}$ \
   git.djeex.fr/djeex/socat-proxy:latest
 ```
 
@@ -119,10 +118,12 @@ services:
     volumes:
       - ${HOST_SOCKET_PATH}:${UNIX_SOCKET_PATH}
     restart: unless-stopped
+    depends_on:
+      - ${TARGET_HOST}
 
   socket-proxy:
     image: lscr.io/linuxserver/socket-proxy:latest
-    container_name: socket-proxy-beszel
+    container_name: ${TARGET_HOST}
     security_opt:
       - no-new-privileges:true
     environment:
@@ -143,7 +144,7 @@ services:
     security_opt:
       - no-new-privileges:true
     volumes:
-      - ${HOST_SOCKET_PATH}/docker.sock:/var/run/docker.sock:ro
+      - ${HOST_SOCKET_PATH}/${UNIX_SOCKET_NAME}:/var/run/docker.sock:ro
     environment:
       - #... your Beszel environment var 
     depends_on:
