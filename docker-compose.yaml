@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  socat-proxy:
+    build: .
+    environment:
+      - TARGET_HOST=${TARGET_HOST:}
+      - TARGET_PORT=${TARGET_PORT:}
+      - UNIX_SOCKET_PATH=${UNIX_SOCKET_PATH}
+    volumes:
+      - ${HOST_SOCKET_PATH:-/tmp/docker-proxy}:/socket
+    networks:
+      - proxy-network
+    restart: unless-stopped
+
+volumes:
+  socket_volume:
+
+networks:
+  proxy-network:
+    external: false
