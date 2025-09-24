@@ -19,12 +19,12 @@ FULL_UNIX_SOCKET_PATH="$UNIX_SOCKET_PATH/$UNIX_SOCKET_NAME"
 
 VERSION=$(cat VERSION)
 
-echo -e "${CYAN}╭───────────────────────────────────────────────╮${NC}"
-echo -e "${CYAN}│${NC}         Socat-proxy - Version ${VERSION}${NC}       ${CYAN}│${NC}"
-echo -e "${CYAN}├───────────────────────────────────────────────┤${NC}"
+echo -e "${CYAN}╭────────────────────────────────────────────────╮${NC}"
+echo -e "${CYAN}│${NC}            Socat-proxy - Version ${VERSION}${NC}           ${CYAN}│${NC}"
+echo -e "${CYAN}├────────────────────────────────────────────────┤${NC}"
 echo -e "${CYAN}│${NC} Source: https://git.djeex.fr/Djeex/socat-proxy ${CYAN}│${NC}"
 echo -e "${CYAN}│${NC} Mirror: https://github.com/Djeex/socat-proxy   ${CYAN}│${NC}"
-echo -e "${CYAN}╰───────────────────────────────────────────────╯${NC}"
+echo -e "${CYAN}╰────────────────────────────────────────────────╯${NC}"
 
 
 # Validate required environment variables
