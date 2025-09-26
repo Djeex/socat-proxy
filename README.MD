@@ -38,7 +38,7 @@ Proxy Docker socket from a docker proxy to a container in host mode without dire
 
 **Socat-proxy solves this problem** by creating a secure bridge between host-mode containers and containerized socket proxies. It exposes a UNIX socket file on the host filesystem that Beszel can access, while securely forwarding all Docker API requests to the socket-proxy running on the bridge network.
 
-![](https://git.djeex.fr/Djeex/socat-proxy/raw/branch/main/assets/img/socat-proxy.svg)
+![](https://git.djeex.fr/Djeex/socat-proxy/raw/branch/main/illustration/socat-proxy.svg)
 
 ## 🛠️ Configuration
 
