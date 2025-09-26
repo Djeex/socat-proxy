@@ -8,14 +8,14 @@ A lightweight Docker container that creates a UNIX socket proxy to TCP connectio
 ## 📑 Table of Contents
 
 - [🚀 Features](#-features)
+- [🔧 How It Works](#-how-it-works)
 - [📋 Use Case](#-use-case)
 - [🛠️ Configuration](#️-configuration)
   - [Environment Variables](#environment-variables)
 - [🚢 Quick Start](#-quick-start)
   - [Using Docker Compose (Recommended)](#using-docker-compose-recommended)
   - [Using Docker Run](#using-docker-run)
-- [🔧 How It Works](#-how-it-works)
-- [💡 Example: Secure Docker Socket Access for Host-Mode Containers](#-example-secure-docker-socket-access-for-host-mode-containers)
+- [💡 Deployment example for Beszel](#-example-secure-docker-socket-access-for-host-mode-containers)
 
 ## 🚀 Features
 
@@ -23,9 +23,22 @@ A lightweight Docker container that creates a UNIX socket proxy to TCP connectio
 - **Socket Management**: Automatic UNIX socket creation and cleanup
 - **Production Ready**: Includes proper error handling and logging
 
+## 🔧 How It Works
+
+1. **Socket Check**: Verifies if UNIX socket exists at startup
+2. **Cleanup**: Removes existing socket file/folder if present
+3. **Socket Creation**: Creates new UNIX socket using `nc -lU`
+4. **Proxy Start**: Starts socat to proxy UNIX socket to TCP endpoint
+
 ## 📋 Use Case
 
-- Proxy Docker socket from a docker proxy to a container in host mode without directly exposing socket to host
+Proxy Docker socket from a docker proxy to a container in host mode without directly exposing socket to host. For example:
+
+[Beszel](https://beszel.dev/) is a monitoring tool that requires `network_mode: host` to function properly. This creates a security challenge: Beszel needs access to the Docker socket, but it cannot reach a containerized docker-socket-proxy due to the network isolation. Running docker-socket-proxy in host mode or exposing port to host would also be highly insecure.
+
+**Socat-proxy solves this problem** by creating a secure bridge between host-mode containers and containerized socket proxies. It exposes a UNIX socket file on the host filesystem that Beszel can access, while securely forwarding all Docker API requests to the socket-proxy running on the bridge network.
+
+![](https://git.djeex.fr/Djeex/socat-proxy/raw/branch/main/assets/img/socat-proxy.svg)
 
 ## 🛠️ Configuration
 
@@ -91,18 +104,8 @@ docker run -d \
   git.djeex.fr/djeex/socat-proxy:latest
 ```
 
-## 🔧 How It Works
 
-1. **Socket Check**: Verifies if UNIX socket exists at startup
-2. **Cleanup**: Removes existing socket file/folder if present
-3. **Socket Creation**: Creates new UNIX socket using `nc -lU`
-4. **Proxy Start**: Starts socat to proxy UNIX socket to TCP endpoint
-
-## 💡 Example: Secure Docker Socket Access for Host-Mode Containers
-
-[Beszel](https://beszel.dev/) is a monitoring tool that requires `network_mode: host` to function properly. This creates a security challenge: Beszel needs access to the Docker socket, but it cannot reach a containerized docker-socket-proxy due to the network isolation. Running docker-socket-proxy in host mode would be highly insecure.
-
-**Socat-proxy solves this problem** by creating a secure bridge between host-mode containers and containerized socket proxies. It exposes a UNIX socket file on the host filesystem that Beszel can access, while securely forwarding all Docker API requests to the socket-proxy running on the bridge network.
+## 💡 Deployment example for Beszel
 
 ```yaml
 services:
