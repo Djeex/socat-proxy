@@ -1,4 +1,4 @@
-FROM alpine:3.22.1 AS base
+FROM alpine:3.24.1 AS base
 
 RUN apk add --no-cache socat netcat-openbsd \
     && rm -rf /var/cache/apk/* /tmp/*
