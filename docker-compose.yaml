@@ -3,6 +3,8 @@ services:
   socat-proxy:
     build: .
     environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
       - TARGET_HOST=${TARGET_HOST}
       - TARGET_PORT=${TARGET_PORT}
       - UNIX_SOCKET_NAME=${UNIX_SOCKET_NAME}

@@ -15,6 +15,11 @@
 
 setup() {
     TEST_DIR="$(mktemp -d)"
+    # mktemp defaults to 700 (root-only traversal); a real bind-mounted host
+    # directory is typically world-traversable, so match that here — otherwise
+    # the non-root user entrypoint.sh drops to can't even reach its own
+    # (correctly chowned) socket subdirectory.
+    chmod 755 "$TEST_DIR"
     cp "$BATS_TEST_DIRNAME/../entrypoint.sh" "$TEST_DIR/"
     cp "$BATS_TEST_DIRNAME/../VERSION" "$TEST_DIR/"
     chmod +x "$TEST_DIR/entrypoint.sh"
@@ -36,7 +41,9 @@ teardown() {
 
 run_entrypoint_bg() {
     LOG="$TEST_DIR/out.log"
-    ( cd "$TEST_DIR" && exec ./entrypoint.sh >"$LOG" 2>&1 ) &
+    # Invoked via the absolute path (not a bare `./entrypoint.sh`) so its
+    # /proc cmdline actually contains $TEST_DIR for entrypoint_pid() to match.
+    ( cd "$TEST_DIR" && exec "$TEST_DIR/entrypoint.sh" >"$LOG" 2>&1 ) &
     disown 2>/dev/null || true
 }
 
@@ -104,6 +111,47 @@ wait_for_pid_gone() {
     run "$TEST_DIR/entrypoint.sh"
     [ "$status" -eq 1 ]
     [[ "$output" == *"HOST_SOCKET_PATH environment variable is required"* ]]
+}
+
+# ---- PUID/PGID privilege dropping ------------------------------------------
+
+@test "fails when PUID is not numeric" {
+    export PUID=abc
+    run "$TEST_DIR/entrypoint.sh"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"PUID 'abc' is not a valid numeric user id."* ]]
+}
+
+@test "fails when PGID is not numeric" {
+    export PGID=abc
+    run "$TEST_DIR/entrypoint.sh"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"PGID 'abc' is not a valid numeric group id."* ]]
+}
+
+@test "creates appuser/appgroup at the default 911 PUID/PGID and owns the socket dir" {
+    run_entrypoint_bg
+    wait_for_log "Socat socket is active|Socat socket not found"
+    grep -q "No existing group with GID 911, creating 'appgroup'" "$LOG"
+    grep -q "No existing user with UID 911, creating 'appuser'" "$LOG"
+    owner="$(stat -c '%U:%G' "$UNIX_SOCKET_PATH")"
+    [ "$owner" = "appuser:appgroup" ]
+}
+
+@test "reuses an existing user/group instead of creating one" {
+    export PUID=0
+    export PGID=0
+    run_entrypoint_bg
+    wait_for_log "Socat socket is active|Socat socket not found"
+    grep -q "Reusing existing group 'root' (GID 0)" "$LOG"
+    grep -q "Reusing existing user 'root' (UID 0)" "$LOG"
+}
+
+@test "creates the socket with mode 666 so other-UID consumers can connect" {
+    run_entrypoint_bg
+    wait_for_log "Socat socket is active|Socat socket not found"
+    mode="$(stat -c '%a' "$UNIX_SOCKET_PATH/$UNIX_SOCKET_NAME")"
+    [ "$mode" = "666" ]
 }
 
 @test "prints the version banner from the VERSION file" {
