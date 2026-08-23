@@ -1,6 +1,6 @@
 FROM alpine:3.24.1 AS base
 
-RUN apk add --no-cache socat netcat-openbsd \
+RUN apk add --no-cache socat netcat-openbsd su-exec \
     && rm -rf /var/cache/apk/* /tmp/*
 
 COPY entrypoint.sh VERSION /
