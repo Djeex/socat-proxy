@@ -46,6 +46,8 @@ Proxy Docker socket from a docker proxy to a container in host mode without dire
 
 | Variable | Default | Description | Example |
 |----------|---------|-------------|---------|
+| `PUID` | `911` | User ID the process runs as (drops root at startup) | `1000` |
+| `PGID` | `911` | Group ID the process runs as | `1000` |
 | `TARGET_HOST` | - | Target hostname/IP to proxy to | `socket-proxy-beszel` |
 | `TARGET_PORT` | - | Target port to proxy to | `2375` |
 | `UNIX_SOCKET_NAME` | - | Name of the socket file | `docker.sock` |
@@ -59,6 +61,8 @@ Proxy Docker socket from a docker proxy to a container in host mode without dire
 
 1. Create a `.env` file with your configuration:
 ```bash
+PUID=1000 #user id the process runs as
+PGID=1000 #group id the process runs as
 TARGET_HOST= #your target host
 TARGET_PORT= #your target host port
 UNIX_SOCKET_NAME= #your socket file name
@@ -73,6 +77,8 @@ services:
   socat-proxy:
     image: git.djeex.fr/djeex/socat-proxy:latest
     environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
       - TARGET_HOST=${TARGET_HOST}
       - TARGET_PORT=${TARGET_PORT}
       - UNIX_SOCKET_NAME=${UNIX_SOCKET_NAME}
@@ -94,6 +100,8 @@ docker compose up -d
 ```bash
 docker run -d \
   --name socat-proxy \
+  -e PUID=1000 #user id the process runs as \
+  -e PGID=1000 #group id the process runs as \
   -e TARGET_HOST= #your target host \
   -e TARGET_PORT= #your target host port \
   -e UNIX_SOCKET_NAME= #your socket file name \
