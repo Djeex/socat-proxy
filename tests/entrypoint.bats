@@ -58,7 +58,11 @@ socat_pid() {
 wait_for_log() {
     pattern="$1"
     tries=0
-    while [ "$tries" -lt 20 ]; do
+    # 40 * 0.25s = 10s — merge-triggered runs can land on a cold runner
+    # (evicted Docker cache, first container start), pushing the very first
+    # backgrounded entrypoint.sh past a tighter budget even though nothing's
+    # actually wrong; a rerun on a warm runner always passes.
+    while [ "$tries" -lt 40 ]; do
         grep -qE "$pattern" "$LOG" 2>/dev/null && return 0
         tries=$((tries + 1))
         sleep 0.25
