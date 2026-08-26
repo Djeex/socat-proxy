@@ -145,7 +145,7 @@ fi
 
 log "[~] Testing connection to target..."
 # Test if we can reach the target before starting socat
-if ! nc -z "$TARGET_HOST" "$TARGET_PORT" 2>/dev/null; then
+if ! nc -z -w 2 "$TARGET_HOST" "$TARGET_PORT" 2>/dev/null; then
     log "[!] Cannot connect to $TARGET_HOST:$TARGET_PORT - socat will retry automatically"
 else
     log "[✓] Connection to $TARGET_HOST:$TARGET_PORT is working"
