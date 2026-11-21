@@ -17,6 +17,10 @@
   ],
   "packageRules": [
     {
+      "matchManagers": ["custom.regex"],
+      "pinDigests": false
+    },
+    {
       "matchManagers": ["dockerfile"],
       "matchUpdateTypes": ["patch"],
       "automerge": true
