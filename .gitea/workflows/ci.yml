@@ -19,6 +19,15 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Get shared actions
+        uses: actions/checkout@v7
+        with:
+          repository: labeex/cicdeex
+          ref: 1.0.0
+          token: ${{ secrets.CICDEEX_TOKEN }}
+          path: .cicdeex
+          persist-credentials: false
+
       - name: Scan for secrets
         run: |
           # docker cp, not a build COPY: a repo's own .dockerignore (e.g. one that
@@ -102,6 +111,21 @@ jobs:
             -e DOCKER_HOST=tcp://dockerhost:2375 \
             --add-host=dockerhost:host-gateway \
             aquasec/trivy:0.76.2 image --exit-code 0 --severity HIGH socat-proxy:ci
+
+      # Pilot: the shared publish action in dry-run, before the real publish,
+      # to compare its output with what the step below really does.
+      - name: Publish dry-run (cicdeex pilot)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: ./.cicdeex/publish
+        with:
+          image: socat-proxy:ci
+          paths: '^(Dockerfile|entrypoint\.sh|VERSION)$'
+          push-token: ${{ secrets.CI_PUSH_TOKEN }}
+          registry-token: ${{ secrets.REGISTRY_TOKEN }}
+          github-mirror: "true"
+          github-token: ${{ secrets.GH_TOKEN }}
+          dry-run: "true"
 
       - name: Publish tagged image
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
